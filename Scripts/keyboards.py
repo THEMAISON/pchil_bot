@@ -44,33 +44,13 @@ def get_group_rk() -> ReplyKeyboardMarkup:
 
 def define_weeks_ik():
     for week_num in schedule_data.available_weeks:
-        new_week_button = InlineKeyboardButton(text=f'{week_num} Нед', callback_data=f'week_options_num{week_num}')
-        week_inline_keyboard.insert(new_week_button)\
-
+        new_week_button = InlineKeyboardButton(text=f'{week_num} Нед',
+                                               callback_data=f'week_options_num{week_num}')
+        week_inline_keyboard.insert(new_week_button)
     week_inline_keyboard.add(week_text)
 
 
 def get_weeks_ik() -> InlineKeyboardMarkup:
-    # МЕХАНИХМ КЛАВИАТУРЫ СЛЕД и ПРОШЛ НЕДЕЛИ (старая версия)
-
-    # week_inline_keyboard = InlineKeyboardMarkup(row_width=4)
-
-    # prev_week = InlineKeyboardButton(text=f'↩️ {schedule_data.week - 1} Неделя', callback_data='week_options_prev')
-    # next_week = InlineKeyboardButton(text=f'{schedule_data.week + 1} Неделя ↪️', callback_data='week_options_next')
-
-    # week_type = schedule_data.align_week_type()
-
-    # if week_type == -1:
-    #     return week_inline_keyboard
-    # if week_type == 0:
-    #     week_inline_keyboard.add(next_week)
-    # elif week_type == 1:
-    #     week_inline_keyboard.add(prev_week, next_week)
-    # elif week_type == 2:
-    #     week_inline_keyboard.add(prev_week)
-
-    # week_inline_keyboard.add(schedule_text)
-
     return week_inline_keyboard
 
 

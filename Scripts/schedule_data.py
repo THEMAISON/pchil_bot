@@ -5,7 +5,11 @@ data_path = 'D:/PyCharm Projects/pchil_bot/Schedules/Data/'
 legacy_path = 'D:/PyCharm Projects/pchil_bot/Schedules/Legacy/'
 improved_path = 'D:/PyCharm Projects/pchil_bot/Schedules/Improved/'
 
-parse_data_file_name = 'parse_data.txt'
+# data_path = '/home/pchil_bot/Schedules/Data'
+# legacy_path = '/home/pchil_bot/Schedules/Legacy/'
+# improved_path = '/home/pchil_bot/Schedules/Improved/'
+
+parse_data_file_name = 'ParseData.txt'
 legacy_file_name = 'ИИТ-21-о'
 
 schedules_url = 'https://www.sevsu.ru/univers/shedule/'
@@ -27,40 +31,23 @@ days_week_names = {
     6: 'Суббота',
 }
 
-days_week_messages = {
-    1: '',
-    2: '',
-    3: '',
-    4: '',
-    5: '',
-    6: ''
-}
-
+days_week_messages = {}
 available_weeks = []
 group = 2
 week = 6
 day = 1
 
-schedule_files_data = {}
-schedule_message_id = 0
-schedule_chat_id = 0
-
 
 # parse
 def save_parse_data():
     with open(data_path + parse_data_file_name, 'w') as file:
-        file.write(schedules_url + '\n')
-        file.write(schedule_file_url + '\n')
+        file.write(schedule_file_url)
 
 
 def import_parse_data():
-    global schedules_url, schedule_file_url, legacy_file_name
-
+    global schedule_file_url
     with open(data_path + parse_data_file_name, 'r') as file:
-        data = file.readlines()
-
-    schedules_url = data[0].strip('\n')
-    schedule_file_url = data[1].strip('\n')
+        schedule_file_url = file.readline()
 
 
 def is_parse_data_exist():
@@ -120,12 +107,9 @@ def update_week(data_text):
 
 def align_week_type():
     if len(available_weeks) > 1:
-        # номер недели в начале списка
         if available_weeks.index(week) == 0:
-            return 0
-        # номер недели в конце списка
+            return 0  # номер недели в начале списка
         elif available_weeks.index(week) == len(available_weeks) - 1:
-            return 2
-        # номер недели в середине списка
-        return 1
-    return -1
+            return 2  # номер недели в конце списка
+        return 1  # номер недели в середине списка
+    return -1  # номер не найден

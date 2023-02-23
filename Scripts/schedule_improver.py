@@ -1,5 +1,4 @@
-from openpyxl import load_workbook
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 import schedule_data
 

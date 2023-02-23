@@ -6,11 +6,9 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardRemove, InlineKeyboardMarkup
 from aiogram.dispatcher.filters import Text
 
-import keyboards
-from config import BOT_API_TOKEN
-from keyboards import get_weeks_ik, get_group_rk, get_sevsu_ik, get_days_week_ik
-from user import User
-from schedule_parser import is_schedule_file_updated, download_schedule_file
+from config import BOT_API_TOKEN, PROXY_URL
+from keyboards import get_weeks_ik, get_group_rk, get_sevsu_ik, get_days_week_ik, define_weeks_ik
+import schedule_parser
 import schedule_improver
 import schedule_data
 from datetime import datetime
@@ -18,7 +16,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 
 storage = MemoryStorage()
-bot = Bot(token=BOT_API_TOKEN)
+bot = Bot(proxy=None, token=BOT_API_TOKEN)
 dp = Dispatcher(bot=bot, storage=storage)
 
 
@@ -50,8 +48,6 @@ schedule_messages = {
     'error': '⚠️ Расписание не доступно',
 }
 
-user = User()
-
 
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
@@ -73,11 +69,10 @@ async def sev_command(message: types.Message):
 @dp.message_handler(commands=['sch'])
 async def schedule_command(message: types.Message):
     await message.delete()
-    # await upload_legacy_schedule()
 
     # проверяем файл расписания на сайте на обновление
     schedule_sent_message = await bot.send_message(chat_id=message.chat.id, text=schedule_messages.get('check'))
-    is_updated = is_schedule_file_updated()
+    is_updated = schedule_parser.is_updated()
     await schedule_sent_message.delete()
 
     is_exist = schedule_data.is_legacy_file_exist()
@@ -88,7 +83,7 @@ async def schedule_command(message: types.Message):
 
         # удаление существующих файлов, скачивание нового
         schedule_data.remove_schedule_files()
-        download_schedule_file()
+        schedule_parser.download()
 
         # сохраняем данные для парсинга
         schedule_data.save_parse_data()
@@ -98,7 +93,7 @@ async def schedule_command(message: types.Message):
     # определяем доступные недели из расписания
     if is_updated or not len(schedule_data.available_weeks):
         schedule_improver.define_available_weeks()
-        keyboards.define_weeks_ik()
+        define_weeks_ik()
 
     await bot.send_message(chat_id=message.chat.id, text='Выберите группу или институт', reply_markup=get_group_rk())
     await ScheduleStatesGroup.group.set()
@@ -161,8 +156,7 @@ async def schedule_improve_process(message: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(lambda cb: 'week_options' in cb.data)
 async def callback_schedule_option(callback: types.CallbackQuery):
-    # выбрано текстовое расписание
-    if 'text' in callback.data:
+    if 'text' in callback.data:  # выбрано текстовое расписание
         await callback.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup())
 
         # определяем текстовое расписание для текущего расписания
@@ -176,9 +170,7 @@ async def callback_schedule_option(callback: types.CallbackQuery):
             day_week_sent_message = await bot.send_message(chat_id=callback.message.chat.id, text=day_week_message, parse_mode='Markdown', reply_markup=get_days_week_ik())
 
         await callback.answer()
-    # выбрана другая неделя
-    else:
-        # schedule_data.update_week(callback.data)
+    else:  # выбор недели
         week_num = int(callback.data[callback.data.find('num')+3:])
 
         if week_num != schedule_data.week:
@@ -202,8 +194,6 @@ async def callback_schedule_option(callback: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda cb: 'days_week' in cb.data)
 async def callback_text_schedule_days_week(callback: types.CallbackQuery):
-    # await callback.message.delete()
-
     # определяем текст для сообщения относительно дня недели
     schedule_data.day = int(callback.data[-1])
     day_week_message = schedule_data.days_week_messages.get(schedule_data.day)
