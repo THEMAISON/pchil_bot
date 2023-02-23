@@ -1,2 +1,2 @@
 # pchil_bot
-Bot for SevSu students
+"pchil_bot" - Telegram Bot. Created by THEMAISON
